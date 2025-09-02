@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Добавить цитату{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Добавить цитату</h5>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.source.id_for_label }}">Источник</label>
+              {{ form.source }}
+              {% if form.source.errors %}
+                <div class="text-danger small">{{ form.source.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.text.id_for_label }}">Текст</label>
+              {{ form.text }}
+              {% if form.text.errors %}
+                <div class="text-danger small">{{ form.text.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="{{ form.weight.id_for_label }}">Вес</label>
+              {{ form.weight }}
+              {% if form.weight.errors %}
+                <div class="text-danger small">{{ form.weight.errors }}</div>
+              {% endif %}
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'quotes:home' %}" class="btn btn-outline-secondary">Отмена</a>
+          </form>
+
+          <p class="mt-3 text-muted small">
+            Источник создаётся в админке. Если нужного нет — добавьте его через
+            <a href="/admin/quotes/source/add/" target="_blank" rel="noopener">админку</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
