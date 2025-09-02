@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Топ-10 цитат{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col-lg-8">
+      <h4 class="mb-3">Топ-10 по лайкам</h4>
+
+      <form method="get" class="row g-2 mb-3">
+        <div class="col-md-5">
+          <select name="source" class="form-select">
+            <option value="">Все источники</option>
+            {% for s in sources %}
+              <option value="{{ s.id }}" {% if filters.source == s.id|stringformat:"s" %}selected{% endif %}>
+                {{ s.name }}{% if s.type %} ({{ s.type }}){% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <select name="type" class="form-select">
+            <option value="">Все типы</option>
+            {% for t in types %}
+              <option value="{{ t }}" {% if filters.type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+        </div>
+      </form>
+
+      {% if quotes %}
+        <div class="list-group">
+          {% for q in quotes %}
+            <div class="list-group-item">
+              <p class="mb-1">{{ q.text }}</p>
+              <div class="small text-muted">
+                {{ q.source.name }}{% if q.source.type %} ({{ q.source.type }}){% endif %}
+                • 👍 {{ q.likes }} / 👎 {{ q.dislikes }} • Просмотров: {{ q.views }} • Вес: {{ q.weight }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">Нет данных под выбранные фильтры.</p>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+      <h6 class="mb-2">Дашборд</h6>
+      <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Цитат всего</span><strong>{{ totals.total_quotes|default:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Источников</span><strong>{{ totals.total_sources|default:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Лайков</span><strong>{{ totals.total_likes|default:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Дизлайков</span><strong>{{ totals.total_dislikes|default:0 }}</strong>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span>Просмотров</span><strong>{{ totals.total_views|default:0 }}</strong>
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
