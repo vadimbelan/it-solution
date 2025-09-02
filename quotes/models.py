@@ -13,6 +13,33 @@ class Source(models.Model):
         return self.name
 
 
+class QuoteQuerySet(models.QuerySet):
+    def random_weighted(self):
+        from random import randint
+
+        qs = self.only("id", "weight").order_by("id")
+        total = 0
+        weights = []
+        for q in qs:
+            w = max(int(q.weight or 0), 0)
+            if w > 0:
+                total += w
+                weights.append((q.id, w))
+        if total == 0:
+            return None
+        pick = randint(1, total)
+        acc = 0
+        picked_id = None
+        for pk, w in weights:
+            acc += w
+            if pick <= acc:
+                picked_id = pk
+                break
+        if picked_id is None:
+            return None
+        return self.select_related("source").get(pk=picked_id)
+
+
 class Quote(models.Model):
     source = models.ForeignKey(
         Source,
@@ -25,6 +52,8 @@ class Quote(models.Model):
     dislikes = models.PositiveIntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = QuoteQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at"]
