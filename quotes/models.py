@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -30,3 +31,19 @@ class Quote(models.Model):
 
     def __str__(self) -> str:
         return self.text[:60]
+
+    def clean(self):
+        super().clean()
+        if not self.source_id:
+            return
+        qs = Quote.objects.filter(source_id=self.source_id)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        if qs.count() >= 3:
+            raise ValidationError(
+                {"source": "У одного источника может быть не более 3 цитат."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
