@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    image: quotes-app:latest
+    container_name: quotes_web
+    environment:
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,0.0.0.0"
+      DJANGO_SECRET_KEY: "django-insecure-@44vrnu^fi%17wj^1xr!&d(l-ionmqajxk07%5m3bn4!1rk*9j"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+    restart: unless-stopped

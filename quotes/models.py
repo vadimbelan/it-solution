@@ -1,78 +1,75 @@
+from random import randint
+
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Sum
 
 
 class Source(models.Model):
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=50, blank=True)
+    type = models.CharField(max_length=64, blank=True, default="")
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self) -> str:
-        if self.type:
-            return f"{self.name} ({self.type})"
         return self.name
 
 
-class QuoteQuerySet(models.QuerySet):
+class QuoteManager(models.Manager):
     def random_weighted(self):
-        from random import randint
+        qs = self.get_queryset().only("id", "weight").order_by("id")
+        values = list(qs.values_list("id", "weight"))
+        if not values:
+            return None
 
-        qs = self.only("id", "weight").order_by("id")
-        total = 0
-        weights = []
-        for q in qs:
-            w = max(int(q.weight or 0), 0)
-            if w > 0:
-                total += w
-                weights.append((q.id, w))
-        if total == 0:
-            return None
-        pick = randint(1, total)
-        acc = 0
+        total = sum(w for _, w in values)
+        if total <= 0:
+            return self.get_queryset().first()
+
+        r = randint(1, total)
+
+        cumulative = 0
         picked_id = None
-        for pk, w in weights:
-            acc += w
-            if pick <= acc:
-                picked_id = pk
+        for obj_id, weight in values:
+            cumulative += int(weight)
+            if r <= cumulative:
+                picked_id = obj_id
                 break
+
         if picked_id is None:
-            return None
-        return self.select_related("source").get(pk=picked_id)
+            # теоретически не должно случиться, но на всякий случай
+            picked_id = values[-1][0]
+        return self.get_queryset().select_related("source").get(pk=picked_id)
 
 
 class Quote(models.Model):
-    source = models.ForeignKey(
-        Source,
-        on_delete=models.CASCADE,
-        related_name="quotes",
-    )
+    source = models.ForeignKey(Source, on_delete=models.CASCADE, related_name="quotes")
     text = models.TextField(unique=True)
-    weight = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
-    likes = models.PositiveIntegerField(default=0)
-    dislikes = models.PositiveIntegerField(default=0)
-    views = models.PositiveIntegerField(default=0)
+    weight = models.PositiveIntegerField(default=1)
+    likes = models.IntegerField(default=0)
+    dislikes = models.IntegerField(default=0)
+    views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    objects = QuoteQuerySet.as_manager()
+    objects = QuoteManager()
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return self.text[:60]
+        return f"{self.text[:30]}..."
 
     def clean(self):
-        super().clean()
-        if not self.source_id:
-            return
-        qs = Quote.objects.filter(source_id=self.source_id)
-        if self.pk:
-            qs = qs.exclude(pk=self.pk)
-        if qs.count() >= 3:
-            raise ValidationError(
-                {"source": "У одного источника может быть не более 3 цитат."}
-            )
+        # Ограничение: не более 3 цитат на источник
+        if self.source_id:
+            qs = Quote.objects.filter(source_id=self.source_id)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            count = qs.count()
+            if count >= 3:
+                raise ValidationError("У одного источника может быть не более 3 цитат.")
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+        # Дополнительно: вес должен быть >=1
+        if self.weight <= 0:
+            raise ValidationError({"weight": "Вес должен быть положительным."})
