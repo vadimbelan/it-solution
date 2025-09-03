@@ -9,31 +9,76 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.11" ]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: quotes_db
+          POSTGRES_USER: quotes_user
+          POSTGRES_PASSWORD: quotes_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U quotes_user -d quotes_db -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DJANGO_SECRET_KEY: ci-secret
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost
+
+      POSTGRES_DB: quotes_db
+      POSTGRES_USER: quotes_user
+      POSTGRES_PASSWORD: quotes_pass
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+
+      PYTHONPATH: .
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h 127.0.0.1 -p 5432 -U "$POSTGRES_USER" && break
+            echo "Postgres not ready yet..."; sleep 2
+          done
+
+      - name: Django migrate
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Load seed (optional)
+        run: |
+          python manage.py loaddata quotes/fixtures/seed.json || true
 
       - name: Lint (flake8)
         run: |
           flake8 .
 
-      - name: Run tests (pytest)
-        env:
-          DJANGO_SETTINGS_MODULE: quotes_project.settings
+      - name: Run tests
         run: |
           pytest -q

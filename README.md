@@ -1,20 +1,26 @@
-# Quotes App (Django)
+# Цитаткин (Django-проект)
 
 Django-приложение для работы с цитатами:
-- на главной странице показывается случайная цитата (с учётом веса);
-- можно добавлять новые цитаты (без дублей, не более 3 на один источник);
-- лайки, дизлайки и счётчик просмотров;
-- страница топ-10 цитат по лайкам;
-- админка Django;
-- фикстуры для быстрого наполнения;
+- На главной странице показывается случайная цитата (с учётом веса);
+- Можно добавлять новые цитаты (без дублей, не более 3 на один источник);
+- Лайки, дизлайки и счётчик просмотров;
+- Страница топ-10 цитат по лайкам;
+- Админка Django;
+- Фикстуры для быстрого наполнения;
 - CI (GitHub Actions) с flake8 и pytest;
-- Docker для локального запуска.
+- Docker для локального запуска;
+- Makefile с командами для разработки.
 
----
+> Рабочие переменные среды храните в `.env`.  
+> Для локального запуска скопируйте пример:
+> ```bash
+> cp .env.example .env
+> # при необходимости отредактируйте значения
+> ```
 
-## Локальный запуск (без Docker)
+## Локальный запуск (без Docker / через Makefile)
 ```bash
-git clone
+git clone git@github.com:vadimbelan/it-solution.git
 cd it-solution
 
 python3 -m venv .venv
@@ -22,9 +28,9 @@ source .venv/bin/activate
 
 pip install -r requirements.txt
 
-python manage.py migrate
-python manage.py loaddata quotes/fixtures/seed.json
-python manage.py runserver 0.0.0.0:8000
+make migrate   # применить миграции
+make seed      # загрузить тестовые данные
+make run       # запустить dev-сервер
 ```
 
 Приложение будет доступно на http://127.0.0.1:8000
@@ -33,6 +39,7 @@ python manage.py runserver 0.0.0.0:8000
 ```bash
 docker compose up --build
 ```
+
 Приложение будет доступно на http://127.0.0.1:8000
 
 ## Тесты и линтер
@@ -55,3 +62,5 @@ python manage.py loaddata quotes/fixtures/seed.json
 
 ## Белан Вадим
 Тестовое задание Python/Django.
+Резюме: https://docs.google.com/document/d/1ZhNRsDc3YNTaZdVlhBotcoOm0J17BwrF8RsNxHhnBi0/edit?tab=t.0
+hh.ru: https://hh.ru/resume/d62ef8b8ff0f55c25e0039ed1f77716e4e7859

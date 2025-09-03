@@ -2,19 +2,19 @@
         docker-build docker-up docker-down docker-logs collectstatic
 
 help:
-	@echo "Targets:"
-	@echo "  run             - runserver 0.0.0.0:8000"
-	@echo "  makemigrations  - make migrations"
-	@echo "  migrate         - apply migrations"
-	@echo "  superuser       - create superuser"
-	@echo "  seed            - load seed fixtures"
-	@echo "  lint            - flake8 ."
-	@echo "  test            - pytest -q"
-	@echo "  collectstatic   - manage.py collectstatic"
-	@echo "  docker-build    - docker compose build --no-cache"
-	@echo "  docker-up       - docker compose up --build"
-	@echo "  docker-down     - docker compose down"
-	@echo "  docker-logs     - docker compose logs -f web"
+	@echo "Доступные команды:"
+	@echo "  run             — запустить dev-сервер (0.0.0.0:8000)"
+	@echo "  makemigrations  — создать миграции"
+	@echo "  migrate         — применить миграции"
+	@echo "  superuser       — создать суперпользователя"
+	@echo "  seed            — загрузить тестовые данные"
+	@echo "  lint            — проверка стиля (flake8)"
+	@echo "  test            — тесты (pytest)"
+	@echo "  collectstatic   — собрать статику"
+	@echo "  docker-build    — пересобрать контейнер (без кеша)"
+	@echo "  docker-up       — поднять контейнеры (build + up)"
+	@echo "  docker-down     — остановить контейнеры"
+	@echo "  docker-logs     — посмотреть логи контейнера web"
 
 run:
 	python manage.py runserver 0.0.0.0:8000

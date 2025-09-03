@@ -1,7 +1,6 @@
-from django.db import transaction
 from django.db.models import F, Sum, Count
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from .forms import QuoteForm
@@ -54,7 +53,12 @@ def top_quotes(request):
 
     top_list = list(qs[:10])
     sources = Source.objects.order_by("name")
-    types = Source.objects.exclude(type="").values_list("type", flat=True).distinct().order_by("type")
+    types = (
+        Source.objects.exclude(type="")
+        .values_list("type", flat=True)
+        .distinct()
+        .order_by("type")
+    )
 
     return render(
         request,
@@ -70,15 +74,17 @@ def top_quotes(request):
 
 
 def dashboard(request):
-    total_sources = Source.objects.count()
-    total_quotes = Quote.objects.count()
-
     aggregates = Quote.objects.aggregate(
+        total_sources=Count("source", distinct=True),
+        total_quotes=Count("id"),
         likes_sum=Sum("likes"),
         dislikes_sum=Sum("dislikes"),
         views_sum=Sum("views"),
         weight_sum=Sum("weight"),
     )
+
+    total_sources = aggregates.get("total_sources") or 0
+    total_quotes = aggregates.get("total_quotes") or 0
     likes_sum = aggregates.get("likes_sum") or 0
     dislikes_sum = aggregates.get("dislikes_sum") or 0
     views_sum = aggregates.get("views_sum") or 0
@@ -96,7 +102,6 @@ def dashboard(request):
         .values("id", "text", "views", "likes", "dislikes", "source__name")[:5]
     )
 
-    # распределение по весам (сколько цитат каждого веса)
     weight_distribution = (
         Quote.objects.values("weight").annotate(cnt=Count("id")).order_by("weight")
     )

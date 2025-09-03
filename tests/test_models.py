@@ -31,14 +31,11 @@ def test_weighted_random_selection_monkeypatch(monkeypatch):
     q1 = Quote.objects.create(source=src, text="а", weight=1)
     q2 = Quote.objects.create(source=src, text="б", weight=3)
 
-    # randint вернёт 1
     monkeypatch.setattr("quotes.models.randint", lambda a, b: 1)
     assert Quote.objects.random_weighted().id == q1.id
 
-    # randint вернёт 2
     monkeypatch.setattr("quotes.models.randint", lambda a, b: 2)
     assert Quote.objects.random_weighted().id == q2.id
 
-    # randint вернёт 4
     monkeypatch.setattr("quotes.models.randint", lambda a, b: 4)
     assert Quote.objects.random_weighted().id == q2.id

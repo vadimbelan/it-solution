@@ -10,23 +10,35 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SITE_NAME = "Цитаткин"
+SITE_LOGO = "branding/logo.svg"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-@44vrnu^fi%17wj^1xr!&d(l-ionmqajxk07%5m3bn4!1rk*9j")
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    (
+        "django-insecure-@44vrnu^fi%17wj^1xr!&d(l-i"
+        "onmqajxk07%5m3bn4!1rk*9j"
+    ),
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()] or []
-
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if h.strip()
+] or []
 
 # Application definition
 
@@ -65,6 +77,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                "quotes.context_processors.branding",
             ],
         },
     },
@@ -120,9 +134,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -134,15 +148,27 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage"
+    }
 }
+
+# В проде (DEBUG=False) использую WhiteNoise с манифестом.
+# В dev/test (DEBUG=True) использую стандартный StaticFilesStorage,
+# чтобы шаблоны не требовали собранного манифеста.
+if not DEBUG:
+    STORAGES["staticfiles"] = {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    }
+else:
+    STORAGES["staticfiles"] = {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

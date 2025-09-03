@@ -2,14 +2,15 @@ from random import randint
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Sum
 
 
 class Source(models.Model):
-    name = models.CharField(max_length=255)
-    type = models.CharField(max_length=64, blank=True, default="")
+    name = models.CharField("Название", max_length=255)
+    type = models.CharField("Тип", max_length=64, blank=True, default="")
 
     class Meta:
+        verbose_name = "Источник"
+        verbose_name_plural = "Источники"
         ordering = ["name"]
 
     def __str__(self) -> str:
@@ -44,32 +45,35 @@ class QuoteManager(models.Manager):
 
 
 class Quote(models.Model):
-    source = models.ForeignKey(Source, on_delete=models.CASCADE, related_name="quotes")
-    text = models.TextField(unique=True)
-    weight = models.PositiveIntegerField(default=1)
-    likes = models.IntegerField(default=0)
-    dislikes = models.IntegerField(default=0)
-    views = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
+    source = models.ForeignKey(
+        Source, on_delete=models.CASCADE, related_name="quotes", verbose_name="Источник"
+    )
+    text = models.TextField("Текст", unique=True)
+    weight = models.PositiveIntegerField("Вес", default=1)
+    likes = models.IntegerField("Лайки", default=0)
+    dislikes = models.IntegerField("Дизлайки", default=0)
+    views = models.IntegerField("Просмотры", default=0)
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
 
     objects = QuoteManager()
 
     class Meta:
+        verbose_name = "Цитата"
+        verbose_name_plural = "Цитаты"
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
         return f"{self.text[:30]}..."
 
     def clean(self):
-        # Ограничение: не более 3 цитат на источник
         if self.source_id:
             qs = Quote.objects.filter(source_id=self.source_id)
             if self.pk:
                 qs = qs.exclude(pk=self.pk)
-            count = qs.count()
-            if count >= 3:
-                raise ValidationError("У одного источника может быть не более 3 цитат.")
+            if qs.count() >= 3:
+                raise ValidationError(
+                    "У одного источника может быть не более 3 цитат."
+                )
 
-        # Дополнительно: вес должен быть >=1
         if self.weight <= 0:
-            raise ValidationError({"weight": "Вес должен быть положительным."})
+            raise ValidationError({"weight": "Вес должен быть >= 1."})

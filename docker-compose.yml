@@ -3,12 +3,36 @@ services:
     build: .
     image: quotes-app:latest
     container_name: quotes_web
-    environment:
-      DJANGO_DEBUG: "False"
-      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,0.0.0.0"
-      DJANGO_SECRET_KEY: "django-insecure-@44vrnu^fi%17wj^1xr!&d(l-ionmqajxk07%5m3bn4!1rk*9j"
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
-      - ./db.sqlite3:/app/db.sqlite3
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: quotes_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h 127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  pg_data:
