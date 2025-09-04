@@ -1,5 +1,9 @@
 # Цитаткин (Django-проект)
 
+[![CI](https://img.shields.io/github/actions/workflow/status/vadimbelan/it-solution/ci.yml?branch=master&label=CI&logo=github)](https://github.com/vadimbelan/it-solution/actions/workflows/ci.yml)
+![Django](https://img.shields.io/badge/Django-4.2.26-092E20?logo=django)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python)
+
 Django-приложение для работы с цитатами:
 - На главной странице показывается случайная цитата (с учётом веса);
 - Можно добавлять новые цитаты (без дублей, не более 3 на один источник);
