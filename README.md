@@ -65,7 +65,8 @@ pytest -q
 python manage.py loaddata quotes/fixtures/seed.json
 ```
 
+## Деплой на PythonAnywhere
+Cайт открывается по [ссылке](https://vadimbelan.pythonanywhere.com)
+
 ## Белан Вадим
-Тестовое задание Python/Django.
-Резюме: https://docs.google.com/document/d/1ZhNRsDc3YNTaZdVlhBotcoOm0J17BwrF8RsNxHhnBi0/edit?tab=t.0
-hh.ru: https://hh.ru/resume/d62ef8b8ff0f55c25e0039ed1f77716e4e7859
+Тестовое задание Python/Django. [Резюме](https://docs.google.com/document/d/1ZhNRsDc3YNTaZdVlhBotcoOm0J17BwrF8RsNxHhnBi0/edit?tab=t.0), [hh.ru](https://hh.ru/resume/d62ef8b8ff0f55c25e0039ed1f77716e4e7859)
